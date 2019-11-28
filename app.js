@@ -1,17 +1,23 @@
-const request = require('request')
-const url = 'https://api.darksky.net/forecast/a769812d6622919097d218abd02aa37b/37.8267,-122.4233'
+const geocode = require('./utils/geocode')
+const forecast = require('./utils/forecast')
 
-request({ url: url, json: true }, (error, response) => {
-    console.log(response.body.daily.data[0].summary + ' It is currently ' + response.body.currently.temperature + ' degress out. There is a ' + response.body.currently.precipProbability + '% chance of rain.')
-})
+const address = process.argv[2]
 
-// Geocoding
-// Address -> Lat/Long -> Weather
+if (!address) {
+    console.log('Please provide an address')
+} else {
+    geocode(address, (error, { latitude, longitude, location }) => {
+        if (error) {
+            return console.log(error)
+        }
 
-const geocodeURL = 'https://api.mapbox.com/geocoding/v5/mapbox.places/kolkata.json?access_token=pk.eyJ1IjoiYW1pdGF2YTciLCJhIjoiY2szZTcyYmx1MTI5NTNjcDh3MDZmMjVteCJ9.P1wkfAlg8Q90YZaMqLK76Q&limit=1'
+        forecast(latitude, longitude, (error, forecastData) => {
+            if (error) {
+                return console.log(error)
+            }
 
-request({ url: geocodeURL, json: true }, (error, response) => {
-    const latitude = response.body.features[0].center[0]
-    const longitude = response.body.features[0].center[1]
-    console.log(latitude, longitude)
-})
+            console.log(location)
+            console.log(forecastData)
+        })
+    })
+}
